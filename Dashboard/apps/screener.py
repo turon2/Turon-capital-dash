@@ -1,14 +1,7 @@
 import pandas as pd
 from dash import Dash, dcc, html, Input, Output,callback,dash_table
 
-# -- Import and clean data (importing csv into pandas)
-#read the csv file with given path
 
-# df.reset_index(inplace=True)
-# print(df[:5])
-
-# ------------------------------------------------------------------------------
-# App layout
 def screen():
     df = pd.read_csv("data/screener.csv",index_col = 0)
     dates = df['Expiry Date'].unique().tolist()

@@ -6,7 +6,7 @@ import functions
 
 
 # app = dash.Dash(__name__, meta_tags=[{'name': 'viewport','content': 'width=device-width, initial-scale=1.0, maximum-scale=1.2, minimum-scale=0.5,'}], external_stylesheets=[dbc.themes.CYBORG])
-from apps import index,screener
+from apps import index,screener,LSTM
 
 # building the navigation bar
 # https://github.com/facultyai/dash-bootstrap-components/blob/master/examples/advanced-component-usage/Navbars.py
@@ -87,7 +87,7 @@ navbar = html.Div([
             dbc.Row([
                 dbc.Col(html.Img(src="/assets/final.png", height="105px"),lg = 3,width = 6),
                 dbc.Col(dbc.Button("HOME", color="success", className="inline-block", outline = True, href = "/home")),
-                dbc.Col(dbc.Button("MAIN", color="success", className="inline-block", outline = True, href = "/home")),
+                dbc.Col(dbc.Button("LSTM", color="success", className="inline-block", outline = True, href = "/lstm")),
                 dbc.Col(dbc.Button("SCREENER", color="success", className="inline-block", outline = True, href = "/screener")),
                 dbc.Col(dbc.Button("ABOUT US", color="success", className="inline-block", outline = True, href = "/index")),
             ]),
@@ -116,10 +116,12 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/index':
         return index.layout
+    if pathname == '/lstm':
+        return LSTM.layout
     elif pathname == '/screener':
         df = functions.screen()
         print(df.columns)
-        return screener.layout
+        return screener.screen()
     else:
         return index.layout
 

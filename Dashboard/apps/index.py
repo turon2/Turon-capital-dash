@@ -290,6 +290,10 @@ def update_graph(radio_item,select_country):
             color_plate.append("#31c453")
         else:
             color_plate.append("#e62020")
+
+    st_dev2 = np.std(monthly_returns)
+    mean2 = np.mean(monthly_returns)
+
     # Plot
     fig1 = go.Figure()
     fig1.add_trace(
@@ -316,7 +320,17 @@ def update_graph(radio_item,select_country):
                           font_color="white"
                       )
                       )
+    fig1.add_hline(y=st_dev2, line_dash="dot",
+                   annotation_text="Std.Dev return : " + str(st_dev2),
+                   annotation_hovertext="Std.Dev return",
+                   annotation_bgcolor="white",
+                   annotation_position="top left", line_color='white')
 
+    fig1.add_hline(y=mean2, line_dash="dot",
+                   annotation_text="MEAN return : " + str(mean2),
+                   annotation_hovertext="MEAN return",
+                   annotation_bgcolor="white",
+                   annotation_position="top right", line_color='yellow')
 
     return fig1,fig
 @callback(
@@ -360,6 +374,8 @@ def update_graph_IV(select_country, slider_year, radio_items):
                           font_color = "white"
                                       )
                        )
+    st_dev2 = np.std(data2['IV'].to_list())
+    mean2 = np.mean(data2['IV'].to_list())
     fig.add_trace(go.Scatter(x=data2['Date'], y=data2['IV'], mode='lines+markers', name='Closing Price', marker_line_width=2,
                                marker_size=16, marker_color='#06FF00',
                                hoverinfo='text',
@@ -371,6 +387,17 @@ def update_graph_IV(select_country, slider_year, radio_items):
                                '<b>Date</b>: ' + data2['Date'].astype(str) + '<br>' +
                                '<b>Days to Expiry</b>: ' + data2['days_to_expiry'].astype(str) + '<br>'
                                ))
+    fig.add_hline(y=st_dev2, line_dash="dot",
+                   annotation_text="Std.Dev IV : " + str(st_dev2),
+                   annotation_hovertext="Std.Dev return",
+                   annotation_bgcolor="white",
+                   annotation_position="top left", line_color='white')
+
+    fig.add_hline(y=mean2, line_dash="dot",
+                   annotation_text="MEAN IV : " + str(mean2),
+                   annotation_hovertext="MEAN return",
+                   annotation_bgcolor="white",
+                   annotation_position="top right", line_color='yellow')
     return fig
 
 @callback(
@@ -442,6 +469,8 @@ def update_cards(select_country, slider_year, radio_items):
 @callback(
     Output('live_text3', 'children'),
     Output('live_text4', 'children'),
+    Output('live_text5', 'children'),
+    Output('live_text6', 'children'),
     [Input('select_country', 'value')],
     [Input('slider_year', 'value')],
     [Input('radio_items', 'value')]
@@ -463,7 +492,12 @@ def update_cards(select_country, slider_year, radio_items):
         (data1['Date'] >= datetime(year[0], month, 1).date()) & (
                     data1['Date'] <= datetime(year[1], month, num_days).date())]
     high = data2['IV'].max()
+    avg_IV = np.mean(data2['IV'].to_list())
+    median_IV = np.median(data2['IV'].to_list())
     low = data2['IV'].min()
+    IV_rank_mean = round(((avg_IV - low)/(high - low)) * 100,2)
+    IV_rank_median = round(((median_IV - low) / (high - low)) * 100,2)
+
     high_date_data = str(data2.iloc[data2['IV'].argmax()]['Date'])
     low_date_data = str(data2.iloc[data2['IV'].argmin()]['Date'])
     high_expiry_date_data = str(data2.iloc[data2['IV'].argmax()]['Expiry'])
@@ -573,7 +607,78 @@ def update_cards(select_country, slider_year, radio_items):
 
     ]
 
-    return live3, live4
+    live5 = [
+        html.H6(children='Mean IV of : ' + stock,
+                style={'textAlign': 'center',
+                       'color': 'white'}
+                ),
+        html.P('{0:,.0f}'.format(avg_IV),
+               style={'textAlign': 'center',
+                      'color': '#34aeeb',
+                      'fontSize': 40}
+               ),
+
+        html.P('IV Rank of mean IV:  '  + str(IV_rank_mean) + '%',
+               style={
+                   'textAlign': 'center',
+                   'color': 'white',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               ),
+        html.Br(),
+        html.P('Underlying Price:  ' + ' ' + low_underlying_data,
+               style={
+                   'textAlign': 'center',
+                   'color': '#34aeeb',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               ),
+        html.P('Strike Price:  ' + ' ' + low_strikeprice_data,
+               style={
+                   'textAlign': 'center',
+                   'color': '#34aeeb',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               )
+
+    ]
+
+    live6 = [
+        html.H6(children='Median IV of : ' + stock,
+                style={'textAlign': 'center',
+                       'color': 'white'}
+                ),
+        html.P('{0:,.0f}'.format(median_IV),
+               style={'textAlign': 'center',
+                      'color': '#ff7088',
+                      'fontSize': 40}
+               ),
+        html.P('IV Rank of median IV:  ' + str(IV_rank_median) + '%',
+               style={
+                   'textAlign': 'center',
+                   'color': 'white',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               ),
+        html.Br(),
+        html.P('Underlying Price:  ' + ' ' + low_underlying_data,
+               style={
+                   'textAlign': 'center',
+                   'color': '#ff7088',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               ),
+        html.P('Strike Price:  ' + ' ' + low_strikeprice_data,
+               style={
+                   'textAlign': 'center',
+                   'color': '#ff7088',
+                   'fontSize': 15,
+                   'margin-top': '-18px'}
+               )
+
+    ]
+
+    return live3, live4, live5, live6
 @callback([Output('candlestick_chart', 'figure')],
               [Output('volume_chart', 'figure')],
               [Output('log_chart', 'figure')],
@@ -601,18 +706,22 @@ def update_graph(select_country, slider_year, radio_items):
 
     colors = ['gold', 'mediumturquoise', 'darkorange', 'lightgreen', '#f5700a', '#930af5', '#f50ab6']
 
-    fig5 = go.Figure(data=[go.Pie(labels=pie_label,
-                                 values=pie_data['Trend'].count())])
-    fig5.update_traces(hoverinfo='label+percent', textinfo='value', textfont_size=20,
-                      marker=dict(colors=colors, line=dict(color='#000000', width=2)))
-    fig5.update_layout(margin=dict(l=0, r=0, t=0, b=0))
-    fig5.update_layout(autosize=False, width = 360, height=400,
+    fig5 = go.Figure(data=[go.Bar(x=pie_label,
+                                 y=pie_data['Trend'].count(),marker_color='lightsalmon')])
+    # fig5.update_traces(hoverinfo='label+percent', textinfo='value', textfont_size=20,
+    #                   marker=dict(colors=colors, line=dict(color='#000000', width=2)))
+    # fig5.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+    fig5.update_layout(autosize=False, width = 380, height=420,
                       plot_bgcolor='#010915',
                       paper_bgcolor='#010915',
                       titlefont={'color': 'white', 'size': 20},
                       legend_font_color='white',
                       legend_font_size=10,
                       hovermode="x unified",
+                      xaxis={'color': 'white', 'gridwidth': 0.1, 'linecolor': 'white', 'linewidth': 1,
+                              'gridcolor': '#e5e5e5', 'showgrid': False},
+                      yaxis={'color': 'white', 'gridwidth': 0.1, 'linecolor': 'white', 'linewidth': 1,
+                              'gridcolor': '#e5e5e5', 'showgrid': False},
                       hoverlabel=dict(
                           bgcolor="#010915",
                           font_size=16,
